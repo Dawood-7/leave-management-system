@@ -14,7 +14,36 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model TestProfile {
-id  String @id @default(uuid())
-name String
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  name              String
+  casualLeaveBalance Int      @default(0) // Stores balance for Casual Leave
+  sickLeaveBalance   Int      @default(0) // Stores balance for Sick Leave
+  leaves            Leave[]   // Relation to Leave model
+}
+
+model Leave {
+  id                Int       @id @default(autoincrement())
+  employee          User      @relation(fields: [employeeId], references: [id])
+  employeeId        Int
+  type              LeaveType
+  fullDay           Boolean   // True for full day, false for half day
+  halfDayPeriod     HalfDay?  // Nullable, either 'FirstHalf' or 'SecondHalf' when fullDay is false
+  startDate         DateTime  // Start of leave (single day if half day)
+  endDate           DateTime? // Nullable; will only be set if it's a full-day range
+  reason            String
+  responsiblePerson String    // This can be an enum or a foreign key if you're storing responsible persons in a separate table
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+enum LeaveType {
+  SICK_LEAVE
+  CASUAL_LEAVE
+}
+
+enum HalfDay {
+  FIRST_HALF
+  SECOND_HALF
 }
